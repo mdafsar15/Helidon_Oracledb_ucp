@@ -11,7 +11,10 @@ import java.util.List;
 
 import javax.enterprise.context.Dependent;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceUnit;
 import javax.persistence.Query;
 //import javax.persistence.Query;
 import javax.transaction.Transactional;
@@ -72,12 +75,21 @@ public class ExampleResource {
 		return returnValue;
 	}
 
+	
+	 @PersistenceUnit
+	  private EntityManagerFactory entityManagerFactory;
+
 	@POST
 	@Path("post")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Transactional
+	@PersistenceContext
 	public Greeting insert(@RequestBody Greeting greeting) {
-		System.out.println("in method getResponse..."+greeting);
+		System.out.println("in method getResponse..." + greeting);
+
+//		EntityTransaction et = em.getTransaction();
+//		EntityManagerFactory ef = em.getEntityManagerFactory();
+//		et.begin();
 
 //		Query query = this.em.createNativeQuery("INSERT INTO Greeting (SALUTATION, RESPONSE) VALUES (?,?)");
 //		em.getTransaction().begin();
@@ -85,24 +97,34 @@ public class ExampleResource {
 //		query.setParameter(2, greeting.getResponse());
 //		query.executeUpdate();
 //		this.em.persist(query);
-		this.em.persist(greeting);
-		
+		EntityManager entityManager = entityManagerFactory.createEntityManager();
+	    EntityTransaction entityTransaction = entityManager.getTransaction();
+	    
+	    entityTransaction.begin();
+	    entityManager.persist(greeting);
+	    entityTransaction.commit();
+
+	    entityManager.close();
+//		this.em.persist(greeting);
+//		et.commit();
+//		ef.getPersistenceUnitUtil();
+
 //		em.getTransaction().commit();
 
 //		System.out.println("salutation "+greeting.getSalutation());
 //		System.out.println("response "+greeting.getResponse());
-		System.out.println("data successfully insert!!!"+greeting);
+		System.out.println("data successfully insert!!!" + greeting);
 		return greeting;
+
 	}
-	
-	
+
 //	Query query = em.createNativeQuery("INSERT INTO Bike (id, name) VALUES (:id , :name);");
 //	em.getTransaction().begin();
 //	query.setParameter("id", "5");
 //	query.setParameter("name", "Harley");
 //	query.executeUpdate();
 //	em.getTransaction().commit();
-	
+
 //	@POST
 //	@Path("insert")
 //	@Produces("text/plain")
