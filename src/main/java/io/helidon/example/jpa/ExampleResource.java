@@ -8,16 +8,26 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import java.util.List;
+import java.util.Properties;
 
 import javax.enterprise.context.Dependent;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceUnit;
 import javax.persistence.Query;
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
 //import javax.persistence.Query;
 import javax.transaction.Transactional;
+import javax.transaction.UserTransaction;
 import javax.ws.rs.PathParam;
 
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
@@ -75,49 +85,41 @@ public class ExampleResource {
 		return returnValue;
 	}
 
-	
-	 @PersistenceUnit
-	  private EntityManagerFactory entityManagerFactory;
+	@PersistenceUnit
+	private EntityManagerFactory entityManagerFactory;
 
 	@POST
 	@Path("post")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Transactional
 	@PersistenceContext
-	public Greeting insert(@RequestBody Greeting greeting) {
+	public Greeting insert(@RequestBody Greeting greeting) throws NamingException, NotSupportedException, SystemException, SecurityException, IllegalStateException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
 		System.out.println("in method getResponse..." + greeting);
 
-//		EntityTransaction et = em.getTransaction();
-//		EntityManagerFactory ef = em.getEntityManagerFactory();
-//		et.begin();
+//		Properties props = new Properties();
+//		props.setProperty(Context.INITIAL_CONTEXT_FACTORY, "java:comp/UserTransaction");
+//		Context initialContext = new InitialContext(props);
+		
+		
+		UserTransaction transaction = (UserTransaction)new InitialContext().lookup("java:comp/UserTransaction");
+		transaction.begin();
+//		EntityManager em = getEntityManager();
+		em.persist(greeting);
+		transaction.commit();
 
-//		Query query = this.em.createNativeQuery("INSERT INTO Greeting (SALUTATION, RESPONSE) VALUES (?,?)");
-//		em.getTransaction().begin();
-//		query.setParameter(1, greeting.getSalutation());
-//		query.setParameter(2, greeting.getResponse());
-//		query.executeUpdate();
-//		this.em.persist(query);
-		EntityManager entityManager = entityManagerFactory.createEntityManager();
-	    EntityTransaction entityTransaction = entityManager.getTransaction();
-	    
-	    entityTransaction.begin();
-	    entityManager.persist(greeting);
-	    entityTransaction.commit();
+//		EntityManager entityManager = entityManagerFactory.createEntityManager();
+//		EntityTransaction entityTransaction = entityManager.getTransaction();
+//
+//		entityTransaction.begin();
+//		entityManager.persist(greeting);
+//		entityTransaction.commit();
+//
+//		entityManager.close();
 
-	    entityManager.close();
-//		this.em.persist(greeting);
-//		et.commit();
-//		ef.getPersistenceUnitUtil();
-
-//		em.getTransaction().commit();
-
-//		System.out.println("salutation "+greeting.getSalutation());
-//		System.out.println("response "+greeting.getResponse());
 		System.out.println("data successfully insert!!!" + greeting);
 		return greeting;
 
 	}
-
 //	Query query = em.createNativeQuery("INSERT INTO Bike (id, name) VALUES (:id , :name);");
 //	em.getTransaction().begin();
 //	query.setParameter("id", "5");
